@@ -1,9 +1,0 @@
-batch_size: 16
-height: 32
-learning_rate: 0.0005
-max_text_length: 16
-model_path: Models/handwriting_recog/202610071621
-train_epochs: 1000
-train_workers: 20
-vocab: Dcu.3ytCVl,&z7-;wNfJkWG9'UYLdiaqmSOngbRox)H5e6P?BKZ#8MF"v(A41TIj2:QpshE0r!
-width: 128
