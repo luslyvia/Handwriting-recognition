@@ -1,5 +1,7 @@
 import tensorflow as tf
 
+from configs import ModelConfigs
+
 import stow
 import tarfile
 from tqdm import tqdm
@@ -36,22 +38,35 @@ dataset, vocab, max_len = [], set(), 0
 words = open(stow.join(dataset_path, "words.txt"), "r").readlines()
 for line in tqdm(words):
 
+    # If the line start with #, skip the line
     if line.startswith("#"):
         continue
 
+    # Split the line by " ", if the second element is "err", skip the line
     line_split = line.split(" ")
     if line_split[1] == "err":
         continue
 
-    folder1 = line_split[0][:3]
+    # Extracts the first 3 and 8 chars of the file name and the label
+    folder1 = line_split[0][:3] # Get the id 
     folder2 = line_split[0][:8]
     file_name = line_split[0] + ".png"
-    label = line_split[-1].rstrip('\n')
+    label = line_split[-1].rstrip('\n') # Get the actual label
 
+    # Constructs the file path
     rel_path = stow.join(dataset_path, "words", folder1, folder2, file_name)
     if not stow.exists(rel_path):
         continue
 
-    dataset.append([rel_path, label])
-    vocab.update(list(label))
-    max_len = max(max_len, len(label))
+    # Add file path and label to the datasets
+    dataset.append([rel_path, label]) # Dictionary of path, label
+    vocab.update(list(label)) # All the char in the label
+    max_len = max(max_len, len(label)) # Longest words
+
+# Create a ModelConfigs object to store model configurations
+configs = ModelConfigs()
+
+# Save vocab and maximum text length to configs
+configs.vocab = "".join(vocab)
+configs.max_text_length = max_len
+configs.save()
