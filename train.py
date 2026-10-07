@@ -1,6 +1,9 @@
 import tensorflow as tf
+from keras.callbacks import EarlyStopping, ModelCheckpoint, TensorBoard, ReduceLROnPlateau
 
 from configs import ModelConfigs
+from model import train_model
+
 from mltu.dataProvider import DataProvider
 from mltu.preprocessors import ImageReader
 from mltu.transformers import ImageResizer, LabelIndexer, LabelPadding, ImageShowCV2
@@ -86,8 +89,8 @@ data_provider = DataProvider(
     data_preprocessors=[ImageReader(image_class=Image)],
     transformers=[
         ImageResizer(configs.width, configs.height, keep_aspect_ratio=False),
-        LabelIndexer(configs.vocab),
-        LabelPadding(max_word_length=configs.max_text_length, padding_value=len(configs.vocab)),
+        LabelIndexer(configs.vocab), # Transform string to numerical type
+        LabelPadding(max_word_length=configs.max_text_length, padding_value=len(configs.vocab)), # All label should be the same size
     ],
 )
 
@@ -116,5 +119,14 @@ model.compile(
     run_eagerly=False
 )
 model.summary(line_length=110)
+
+# Define callbacks
+earlystopper = EarlyStopping(monitor='val_CER', patience=20, verbose=1)
+checkpoint = ModelCheckpoint(f"{configs.model_path}/model.h5", monitor='val_CER', verbose=1, save_best_only=True, mode='min')
+trainLogger = TrainLogger(configs.model_path)
+tb_callback = TensorBoard(f'{configs.model_path}/logs', update_freq=1)
+reduceLROnPlat = ReduceLROnPlateau(monitor='val_CER', factor=0.9, min_delta=1e-10, patience=10, verbose=1, mode='auto')
+model2onnx = Model2onnx(f"{configs.model_path}/model.h5")
+
 
 
