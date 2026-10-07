@@ -6,7 +6,9 @@ from mltu.preprocessors import ImageReader
 from mltu.transformers import ImageResizer, LabelIndexer, LabelPadding, ImageShowCV2
 from mltu.annotations.images import Image
 from mltu.augmentors import RandomBrightness, RandomRotate, RandomErodeDilate, RandomSharpen
-
+from mltu.tensorflow.losses import CTCloss
+from mltu.tensorflow.callbacks import Model2onnx, TrainLogger
+from mltu.tensorflow.metrics import CWERMetric
 
 import stow
 import tarfile
@@ -99,5 +101,20 @@ train_data_provider.augmentors = [
     RandomSharpen(),
     RandomRotate(angle=10),
 ]
+
+# Creating TensorFlow model architecture
+model = train_model(
+    input_dim = (configs.height, configs.width, 3),
+    output_dim = len(configs.vocab),
+)
+
+# Compile the model and print summary
+model.compile(
+    optimizer=tf.keras.optimizers.Adam(learning_rate=configs.learning_rate), 
+    loss=CTCloss(), 
+    metrics=[CWERMetric(padding_token=len(configs.vocab))],
+    run_eagerly=False
+)
+model.summary(line_length=110)
 
 
