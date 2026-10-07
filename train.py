@@ -1,12 +1,15 @@
 import tensorflow as tf
 
 from configs import ModelConfigs
+from mltu.dataProvider import DataProvider
+from mltu.preprocessors import ImageReader
+from mltu.transformers import ImageResizer, LabelIndexer, LabelPadding, ImageShowCV2
+from mltu.annotations.images import Image
 
 import stow
 import tarfile
 from tqdm import tqdm
 from urllib.request import urlopen
-from io import BytesIO
 from zipfile import ZipFile
 
 #Download and unzip datasets
@@ -70,3 +73,17 @@ configs = ModelConfigs()
 configs.vocab = "".join(vocab)
 configs.max_text_length = max_len
 configs.save()
+
+# Create a provider for the dataset
+data_provider = DataProvider(
+    dataset=dataset,
+    skip_validation=True,
+    batch_size=configs.batch_size,
+    data_preprocessors=[ImageReader(image_class=Image)],
+    transformers=[
+        ImageResizer(configs.width, configs.height, keep_aspect_ratio=False),
+        LabelIndexer(configs.vocab),
+        LabelPadding(max_word_length=configs.max_text_length, padding_value=len(configs.vocab)),
+    ],
+)
+
